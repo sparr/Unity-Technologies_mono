@@ -4309,7 +4309,12 @@ case "x$libgc" in
 		fi
 		if test "x$support_bdwgc" = "xyes"; then
 			AC_CONFIG_SUBDIRS([external/bdwgc/libatomic_ops])
-			ac_configure_args="$ac_configure_args --enable-thread-local-alloc=no --enable-parallel-mark=no --enable-verify-defines=yes --enable-gc-threads=yes --with-libatomic-ops=no --enable-no-threads-discovery=yes --enable-single-obj-compilation=yes --enable-gcj-support=yes --enable-threads=$libgc_threads --enable-munmap=yes --enable-mmap=yes --enable-ignore-dynamic-loading=yes --enable-dont-register-main-static-data=yes"
+			# bdwgc undefines USE_MMAP when it uses the Windows allocator, so the check cannot pass there
+			bdwgc_verify_defines=yes
+			if test "x$host_win32" = "xyes"; then
+				bdwgc_verify_defines=no
+			fi
+			ac_configure_args="$ac_configure_args --enable-thread-local-alloc=no --enable-parallel-mark=no --enable-verify-defines=$bdwgc_verify_defines --enable-gc-threads=yes --with-libatomic-ops=no --enable-no-threads-discovery=yes --enable-single-obj-compilation=yes --enable-gcj-support=yes --enable-threads=$libgc_threads --enable-munmap=yes --enable-mmap=yes --enable-ignore-dynamic-loading=yes --enable-dont-register-main-static-data=yes"
 			AC_CONFIG_SUBDIRS([external/bdwgc])
 		fi
 		;;

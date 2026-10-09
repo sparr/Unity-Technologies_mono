@@ -690,6 +690,8 @@ endif
 if HOST_WIN32
 os_sources = $(windows_sources)
 monobin_platform_ldflags=
+# libtool does not link the static-only libgc-static.la into a DLL
+libmonobdwgc_platform_ldflags=-XCClinker -static-libgcc -Wl,$(abs_top_builddir)/external/bdwgc/.libs/libgc-static.a
 endif
 
 if HOST_SIGPOSIX
@@ -714,7 +716,7 @@ libmonoboehm_2_0_la_LDFLAGS = $(libmonoldflags) $(monobin_platform_ldflags)
 libmonobdwgc_2_0_la_SOURCES =
 libmonobdwgc_2_0_la_CFLAGS = $(mono_bdwgc_CFLAGS)
 libmonobdwgc_2_0_la_LIBADD = libmini.la $(bdwgc_libs) $(LIBMONO_DTRACE_OBJECT) $(LLVMMONOF)
-libmonobdwgc_2_0_la_LDFLAGS = $(libmonoldflags) $(monobin_platform_ldflags)
+libmonobdwgc_2_0_la_LDFLAGS = $(libmonoldflags) $(monobin_platform_ldflags) $(libmonobdwgc_platform_ldflags)
 
 libmonosgen_2_0_la_SOURCES =
 libmonosgen_2_0_la_CFLAGS = $(mono_sgen_CFLAGS)
