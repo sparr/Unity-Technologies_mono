@@ -1,0 +1,10 @@
+# Build environment for libmonobdwgc-2.0.so. Ubuntu 18.04 provides glibc 2.27;
+# the library built here requires at most GLIBC_2.15, like Unity's own build.
+FROM docker.io/library/ubuntu:18.04
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      autoconf automake libtool gettext make gcc g++ pkg-config python3 perl \
+      binutils file ca-certificates \
+ && ln -s /usr/bin/python3 /usr/local/bin/python \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /src

@@ -1,0 +1,27 @@
+REGEDIT4
+; Locations the v140 toolset props read from the registry. setup-msvc.sh
+; imports this into both the 32-bit (Wow6432Node) and 64-bit views.
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VC7]
+"14.0"="C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7]
+"14.0"="C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v8.1]
+"InstallationFolder"="C:\\Program Files (x86)\\Windows Kits\\8.1\\"
+"ProductVersion"="8.1.25984"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots]
+"KitsRoot81"="C:\\Program Files (x86)\\Windows Kits\\8.1\\"
+"KitsRoot10"="C:\\Program Files (x86)\\Windows Kits\\10\\"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\Setup\VC]
+"ProductDir"="C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\14.0\Setup\VS]
+"ProductDir"="C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0]
+"InstallationFolder"="C:\\Program Files (x86)\\Windows Kits\\10\\"
+"ProductVersion"="10.0.10240"

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Imported through ForceImportAfterCppTargets, with ExcludeMASMFromWindowsBuild=true.
+  masm.targets runs ml64 through XamlTaskFactory, which wine-mono does not provide.
+  This assembles win64.asm with the options masm.fixed.props selects and adds the
+  object to the library or DLL link, as masm.targets would.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="WineAssembleWin64Asm" BeforeTargets="Lib;Link"
+          Condition="'$(Platform)' == 'x64' and '$(ExcludeMASMFromWindowsBuild)' == 'true' and ('$(ProjectName)' == 'libmonoutils' or '$(ProjectName)' == 'libmono-dynamic')">
+    <PropertyGroup>
+      <WineAsmSource>$(MonoSourceLocation)\mono\utils\win64.asm</WineAsmSource>
+      <WineAsmObject>$(IntDir)win64.obj</WineAsmObject>
+    </PropertyGroup>
+    <Message Importance="High" Text="Assembling $(WineAsmSource)..." />
+    <Exec Command="&quot;$(MLToolPath)\ml64.exe&quot; /c /nologo /Zi /W3 /errorReport:prompt /D&quot;X64&quot; /Fo&quot;$(WineAsmObject)&quot; /Ta&quot;$(WineAsmSource)&quot;" />
+    <ItemGroup>
+      <Lib Include="$(WineAsmObject)" Condition="'$(ConfigurationType)' == 'StaticLibrary'" />
+      <Link Include="$(WineAsmObject)" Condition="'$(ConfigurationType)' == 'DynamicLibrary'" />
+    </ItemGroup>
+  </Target>
+</Project>
