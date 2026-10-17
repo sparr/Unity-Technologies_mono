@@ -1,0 +1,34 @@
+# Build environment for mono-2.0-bdwgc.dll: the VS2015 (v140) toolset, Windows
+# SDK 8.1, and MSBuild 15 under Wine, matching Unity's own Windows build.
+#
+# Building this image downloads Visual Studio Build Tools 2017 packages from
+# Microsoft. Pass --build-arg ACCEPT_MSVC_LICENSE=yes to accept their license.
+# The image contains Microsoft software that may not be redistributed; do not
+# push it to a registry.
+FROM docker.io/library/debian:trixie-slim
+ARG ACCEPT_MSVC_LICENSE
+RUN test "$ACCEPT_MSVC_LICENSE" = yes \
+ || { echo "Set ACCEPT_MSVC_LICENSE=yes to accept the Visual Studio Build Tools license" >&2; exit 1; }
+# wine32 runs the 32-bit parts of the prefix setup, wine-mono, and MSBuild.
+RUN dpkg --add-architecture i386 \
+ && apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      wine wine64 wine32:i386 msitools python3 ca-certificates curl \
+ && rm -rf /var/lib/apt/lists/*
+# Wine 10.0 expects wine-mono 9.4.0, which MSBuild needs.
+RUN mkdir -p /opt/msvc \
+ && curl -fsSL -o /opt/msvc/vsdownload.py \
+      https://raw.githubusercontent.com/mstorsjo/msvc-wine/514f8ea34842cd6d831804d0e9658d3a32870ae1/vsdownload.py \
+ && curl -fsSL -o /opt/msvc/wine-mono-9.4.0-x86.msi \
+      https://dl.winehq.org/wine/wine-mono/9.4.0/wine-mono-9.4.0-x86.msi \
+ && printf '%s\n' \
+      '278429ffd7ec3aa0080ed0438fe241bb73795555949970cc569db68a60cc386b  /opt/msvc/vsdownload.py' \
+      'cf6173ae94b79e9de13d9a74cdb2560a886fc3d271f9489acb1cfdbd961cacb2  /opt/msvc/wine-mono-9.4.0-x86.msi' \
+    | sha256sum -c -
+COPY setup-msvc.sh /opt/msvc/
+RUN sh /opt/msvc/setup-msvc.sh download
+COPY vc140.reg wine-masm.targets /opt/msvc/
+RUN sh /opt/msvc/setup-msvc.sh wine
+ENV WINEPREFIX=/opt/msvc/wineprefix WINEDEBUG=-all \
+    WINEDLLOVERRIDES="mshtml=d;winemenubuilder.exe=d"
+WORKDIR /src
