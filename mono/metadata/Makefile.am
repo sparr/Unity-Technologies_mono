@@ -17,7 +17,8 @@ win32_sources = \
 	w32process-win32.c \
 	w32process-win32-internals.h \
 	w32socket-win32.c \
-	w32error-win32.c
+	w32error-win32.c \
+	oop.c
 
 platform_sources = $(win32_sources)
 

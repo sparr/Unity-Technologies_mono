@@ -35,7 +35,12 @@
 #include <metadata/profiler-private.h>
 #include <mono/metadata/coree.h>
 
-#ifdef _M_X64
+/* MSVC defines _M_X64, MinGW-w64 does not. */
+#if defined(_M_X64) || (defined(HOST_WIN32) && defined(TARGET_AMD64))
+#define OOP_WIN64 1
+#endif
+
+#ifdef OOP_WIN64
 #include <mono/mini/mini-amd64.h>
 extern GList* g_dynamic_function_table_begin;
 extern SRWLOCK g_dynamic_function_table_lock;
@@ -66,13 +71,13 @@ static OutOfProcessMono g_oop = { NULL, NULL };
 
 #define OFFSET_MEMBER(type, base, member) ((gpointer)((gchar*)(base) + offsetof(type, member)))
 
-void read_exception(const void* address, gsize size)
+static void read_exception(const void* address, gsize size)
 {
     g_assert(g_oop.readException);
     g_oop.readException(address, size, g_oop.userData);
 }
 
-gsize read_memory(void* buffer, const void* address, gsize size)
+static gsize read_memory(void* buffer, const void* address, gsize size)
 {
     if (!buffer || !size)
         return 0;
@@ -86,7 +91,7 @@ gsize read_memory(void* buffer, const void* address, gsize size)
 }
 
 // Read a null-terminated string out-of-process
-gsize read_nt_string(char* buffer, gsize max_size, const void* address)
+static gsize read_nt_string(char* buffer, gsize max_size, const void* address)
 {
     if (!buffer || !max_size)
         return 0;
@@ -110,29 +115,29 @@ gsize read_nt_string(char* buffer, gsize max_size, const void* address)
     return read;
 }
 
-gpointer read_pointer(const void* address)
+static gpointer read_pointer(const void* address)
 {
     gpointer ptr = NULL;
     read_memory(&ptr, address, sizeof(ptr));
     return ptr;
 }
 
-gint64 read_qword(const void* address)
+static gint64 read_qword(const void* address)
 {
     gint64 v = 0;
     read_memory(&v, address, sizeof(v));
     return v;
 }
 
-gint32 read_dword(const void* address)
+static gint32 read_dword(const void* address)
 {
     gint32 v = 0;
     read_memory(&v, address, sizeof(v));
     return v;
 }
 
-GList* read_glist_next(GList* list) { return (GList*) read_pointer(OFFSET_MEMBER(GList, list, next)); }
-gpointer read_glist_data(GList* list) { return read_pointer(OFFSET_MEMBER(GList, list, data)); }
+static GList* read_glist_next(GList* list) { return (GList*) read_pointer(OFFSET_MEMBER(GList, list, next)); }
+static gpointer read_glist_data(GList* list) { return read_pointer(OFFSET_MEMBER(GList, list, data)); }
 
 MONO_API void
 mono_unity_oop_init(
@@ -151,8 +156,8 @@ mono_unity_oop_shutdown(void)
     memset(&g_oop, 0, sizeof(g_oop));
 }
 
-#ifdef _M_X64
-gboolean TryAcquireSpinWait(PSRWLOCK lock, unsigned int spinWait)
+#ifdef OOP_WIN64
+static gboolean TryAcquireSpinWait(PSRWLOCK lock, unsigned int spinWait)
 {
     do
     {
@@ -167,7 +172,7 @@ gboolean TryAcquireSpinWait(PSRWLOCK lock, unsigned int spinWait)
 MONO_API GList*
 mono_unity_lock_dynamic_function_access_tables64(unsigned int spinWait) 
 {
-#ifdef _M_X64
+#ifdef OOP_WIN64
     if (spinWait >= 0x7fffffff) {
         AcquireSRWLockExclusive(&g_dynamic_function_table_lock);
     }
@@ -183,10 +188,8 @@ mono_unity_lock_dynamic_function_access_tables64(unsigned int spinWait)
 MONO_API void
 mono_unity_unlock_dynamic_function_access_tables64(void) 
 {
-#ifdef _M_X64
+#ifdef OOP_WIN64
     ReleaseSRWLockExclusive(&g_dynamic_function_table_lock);
-#else
-    return NULL;
 #endif
 }
 
@@ -194,7 +197,7 @@ MONO_API GList*
 mono_unity_oop_iterate_dynamic_function_access_tables64(
     GList* current) 
 {
-#ifdef _M_X64
+#ifdef OOP_WIN64
     if (current != NULL)
         return read_glist_next(current);
     else
@@ -212,7 +215,7 @@ mono_unity_oop_get_dynamic_function_access_table64(
     void** functionTable,
     gsize* functionTableSize)
 {
-#ifdef _M_X64
+#ifdef OOP_WIN64
     if (!tableEntry || !moduleStart || !moduleEnd || !functionTable || !functionTableSize)
         return FALSE;
 
